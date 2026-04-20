@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedBigInteger('space_id');
             $table->string('email')->nullable();
+            $table->unsignedInteger('seat_number')->nullable();
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->string('status')->default('pending');
