@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // expire pending bookings every minute to release holds quickly
+        $schedule->command('bookings:expire-pending')->everyMinute();
     }
 
     /**
