@@ -18,6 +18,8 @@ class Booking extends Model
         'end_time',
         'status',
         'payment_session_id',
+        'hold_expires_at',
+        'paid_at',
     ];
 
     protected $casts = [
