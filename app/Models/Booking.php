@@ -13,6 +13,7 @@ class Booking extends Model
         'user_id',
         'email',
         'space_id',
+        'seat_number',
         'start_time',
         'end_time',
         'status',
