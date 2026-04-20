@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->boolean('is_seat_based')->default(false)->after('capacity');
             $table->integer('capacity')->default(1);
+            $table->boolean('is_seat_based')->default(false);
             $table->decimal('hourly_rate', 8, 2)->default(0);
             $table->timestamps();
         });

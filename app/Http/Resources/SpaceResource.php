@@ -16,6 +16,7 @@ class SpaceResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'capacity' => (int) $this->capacity,
+            'is_seat_based' => (bool) $this->is_seat_based,
             'hourly_rate' => (float) $this->hourly_rate,
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),

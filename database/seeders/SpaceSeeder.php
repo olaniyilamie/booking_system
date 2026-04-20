@@ -13,9 +13,9 @@ class SpaceSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Space::insert([
-            ['name' => 'Conference Room', 'description' => 'Large meeting room', 'capacity' => 20, 'hourly_rate' => 25.00, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Private Meeting Room', 'description' => 'Quiet private office', 'capacity' => 5, 'hourly_rate' => 15.00, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Hot Desk', 'description' => 'Shared desk space', 'capacity' => 50, 'hourly_rate' => 5.00, 'is_seat_based' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Conference Room', 'description' => 'Large meeting room', 'capacity' => 20, 'is_seat_based' => false, 'hourly_rate' => 25.00, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Private Meeting Room', 'description' => 'Quiet private office', 'capacity' => 5, 'is_seat_based' => false, 'hourly_rate' => 15.00, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Hot Desk', 'description' => 'Shared desk space', 'capacity' => 50, 'is_seat_based' => true, 'hourly_rate' => 5.00, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }
