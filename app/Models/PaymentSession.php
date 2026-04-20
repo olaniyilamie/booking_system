@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class PaymentSession extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'booking_id',
+        'session_token',
+        'status',
+        'amount',
+    ];
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
+    }
+}
