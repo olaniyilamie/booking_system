@@ -28,6 +28,17 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Guest booking limits: 10 requests per minute per email or IP
+        RateLimiter::for('guest-bookings', function (Request $request) {
+            $key = $request->input('email') ?: $request->ip();
+            return Limit::perMinute(10)->by($key);
+        });
+
+        // Authenticated booking limits: 60 requests per minute per user
+        RateLimiter::for('auth-bookings', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')
