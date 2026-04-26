@@ -1,66 +1,352 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+# Booking System (Laravel API)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The **booking system** supporting guest bookings, seat-based and exclusive-space reservations, signed email workflows, temporary holds, and simulated payments for testing.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The system is designed as a **backend-first architecture**, where the API serves as the core application layer and can be consumed by any frontend (Blade).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## ⚙️ Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* Laravel 10
+* PHP 8.1+
+* Laravel Sanctum (API authentication)
+* MySQL / PostgreSQL / SQLite
+* Blade (for signed-link human flows)
+* Mailables (email system)
+* Laravel Scheduler & Queues (planned expansion)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Quick Setup
 
-## Laravel Sponsors
+### 1. Clone & install dependencies
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 2. Configure environment
 
-## Contributing
+Update `.env`:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+APP_URL=http://localhost:8000
+DB_DATABASE=...
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Run migrations & seed data
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+### 4. Start development server
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan serve
+```
+
+---
+
+## ⏱ Background Commands
+
+Expire unpaid bookings:
+
+```bash
+php artisan bookings:expire-pending
+```
+
+---
+
+## 🧠 Core Features
+
+### 👤 Guest & Authenticated Bookings
+
+* Guests can create bookings using email only
+* Authenticated users manage their own bookings
+* Guest bookings can later be linked to accounts via email
+
+---
+
+### 🪑 Seat-based & Exclusive Spaces
+
+* Seat-based spaces prevent per-seat overlap
+* Exclusive spaces prevent any overlapping bookings
+
+---
+
+### ⏳ Temporary Holds
+
+* Unpaid bookings are held for **15 minutes**
+* Expired holds are automatically released
+
+---
+
+### 💳 Payment Simulation
+
+* Fake payment system for testing flows
+* Supports:
+
+  * API-based payment
+  * Signed-link payment (email flow)
+
+---
+
+### ✉️ Email & Signed Links
+
+* Booking confirmation emails include:
+  * Payment link
+  * Cancellation link
+
+* Secure signed URLs:
+  * Time-limited
+  * Tamper-proof
+
+* Supports both:
+  * JSON API flows
+  * Human-friendly Blade flows
+
+---
+
+## 🔐 Authentication & Authorization
+
+### 🔑 Authentication (Sanctum)
+
+All protected routes use:
+
+```php
+auth:sanctum
+```
+
+---
+
+### 🛡️ Authorization Design
+
+Authorization is implemented using **Laravel Policies + Form Requests**, ensuring a clean separation of concerns.
+
+#### Policy Example
+
+```php
+public function update(User $user, Booking $booking)
+{
+    return $user->id === $booking->user_id
+        || $user->role === User::ROLE_SUPER_ADMIN;
+}
+```
+
+---
+
+### 🧾 Form Request Authorization
+
+Authorization is enforced before reaching controllers:
+
+```php
+public function authorize(): bool
+{
+    $booking = $this->route('booking');
+
+    return $this->user()->can('update', $booking);
+}
+```
+
+---
+
+### 🔄 Route Model Binding
+
+```php
+Route::put('/bookings/{booking}', ...);
+```
+
+Automatically resolves:
+
+```
+/bookings/5 → Booking::findOrFail(5)
+```
+
+---
+
+### 📌 Design Benefits
+
+* Centralized authorization logic (Policies)
+* Clean controllers (no inline permission checks)
+* Secure-by-default API
+* Fully scalable role system
+* Ready for frontend integration (SPA/mobile/web)
+
+---
+
+## 🧩 Architecture Overview
+
+### Core Layers
+
+* **Controllers** → Handle HTTP requests only
+* **Services** → Business logic (BookingService)
+* **Policies** → Authorization rules
+* **Form Requests** → Validation + authorization
+* **Mailables** → Email system
+* **Blade Views** → Signed-link user flows
+* **Commands/Jobs** → Background processing (expanding)
+
+---
+
+## 📂 Key Files
+
+* `app/Services/BookingService.php` → Core booking logic
+* `app/Http/Controllers/API/BookingController.php` → Booking API
+* `app/Http/Controllers/API/BookingPaymentController.php` → Payment logic
+* `app/Policies/BookingPolicy.php` → Authorization rules
+* `app/Http/Requests/*` → Validation + authorization
+* `app/Mail/*` → Email notifications
+* `resources/views/bookings/*` → Signed-link UI pages
+
+---
+
+## 🌐 API Routes (JSON)
+
+Base: `/api/bookings`
+
+### CRUD
+
+* `GET /` → List bookings
+* `POST /` → Create booking
+* `GET /{booking}` → Show booking
+* `PUT /{booking}` → Update booking
+* `DELETE /{booking}` → Delete booking
+
+---
+
+### Actions
+
+* `POST /{booking}/cancel-api`
+* `POST /{booking}/pay`
+
+---
+
+## 🔗 Signed Link Routes (Web)
+
+Used in emails (human-friendly flows):
+
+* `GET /bookings/{booking}/pay`
+* `POST /bookings/{booking}/pay`
+* `GET /bookings/{booking}/cancel`
+* `POST /bookings/{booking}/cancel`
+
+---
+
+## 🧪 Example Request
+
+```bash
+curl -X POST http://localhost:8000/api/bookings \
+-H "Content-Type: application/json" \
+-d '{
+  "space_id": 1,
+  "start_time": "2026-05-01 10:00:00",
+  "end_time": "2026-05-01 11:00:00",
+  "email": "guest@example.com"
+}'
+```
+
+---
+
+## 🚧 Roadmap / Future Improvements
+
+This project is designed as an evolving backend system with production-grade enhancements planned.
+
+---
+
+### 🎨 Frontend (API Consumer)
+
+A frontend will be added later to consume this API:
+
+* Vue / React SPA or Blade + Alpine.js
+* Fully API-driven interface
+* Token-based authentication via Sanctum
+* Booking management UI for users and admins
+
+---
+
+### 📧 Queued Email System
+
+Email delivery will move to queues:
+
+* Booking confirmations
+* Cancellation notifications
+* Payment confirmations
+
+Benefits:
+
+* Faster API responses
+* Reliable background processing
+* Scalable architecture
+
+---
+
+### ⚙️ Background Jobs & Scheduler
+
+Planned jobs:
+
+* Expire unpaid bookings (queued version)
+* Clear expired Sanctum tokens
+* Retry failed email deliveries
+
+Scheduled via Laravel Scheduler.
+
+---
+
+### 🔐 Security Enhancements
+
+* Token cleanup job for expired tokens
+* Improved token lifecycle management
+* Optional refresh-token pattern (future)
+
+---
+
+### ✉️ Email Verification System
+
+* Email verification on registration
+* Signed verification links
+* Expiry-based tokens
+* Restriction of sensitive actions until verified
+
+---
+
+### 👤 Role System Improvement (Constants-Based)
+
+Refactor roles to class constants:
+
+```php
+class User
+{
+    public const ROLE_USER = 'user';
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+}
+```
+
+Benefits:
+
+* Avoid magic strings
+* Safer comparisons
+* Cleaner, maintainable code
+
+---
+
+## 📌 Project Vision
+
+This system is being built toward a:
+
+> **Scalable, API-first booking platform with queue-driven processing, secure authentication, and multi-client support (web, API).**
+
+---
+
