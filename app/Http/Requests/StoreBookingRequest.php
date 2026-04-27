@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Carbon\Carbon;
+use Illuminate\Contracts\Validation\Validator;
 
 class StoreBookingRequest extends FormRequest
 {
@@ -16,8 +18,8 @@ class StoreBookingRequest extends FormRequest
     {
         return [
             'space_id' => 'required|exists:spaces,id',
-            'start_time' => 'required|date|after:now',
-            'end_time' => 'required|date|after:start_time',
+            'start_time' => 'required|date_format:Y-m-d H:i:s|after:now',
+            'end_time' => 'required|date_format:Y-m-d H:i:s|after:start_time',
             'email' => 'sometimes|email',
             'seat_number' => 'sometimes|integer|min:1',
         ];
