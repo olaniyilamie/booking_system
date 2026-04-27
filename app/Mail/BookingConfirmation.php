@@ -33,11 +33,18 @@ class BookingConfirmation extends Mailable
             ['booking' => $this->booking->id]
         );
 
+        $paymentUrl = URL::temporarySignedRoute(
+            'bookings.pay',
+            now()->addMinutes(120),
+            ['booking' => $this->booking->id]
+        );
+
         return $this->subject('Booking confirmation')
                     ->view('emails.booking.confirmation')
                     ->with([
                         'booking' => $this->booking,
                         'cancel_url' => $cancelUrl,
+                        'payment_url' => $paymentUrl,
                     ]);
     }
 }
