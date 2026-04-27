@@ -29,7 +29,7 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         // Guest booking limits: 10 requests per minute per email or IP
-        RateLimiter::for('guest-bookings', function (Request $request) {
+        RateLimiter::for('booking-actions', function (Request $request) {
             $key = $request->input('email') ?: $request->ip();
             return Limit::perMinute(10)->by($key);
         });
