@@ -39,7 +39,7 @@ class BookingWebController extends Controller
             $to = $booking->email ?? $booking->user?->email;
             if (!empty($to)) {
                 try {
-                    Mail::to($to)->send(new BookingCancellation($cancelled, 'Your booking was successfully cancelled.'));
+                    Mail::to($to)->queue(new BookingCancellation($cancelled, 'Your booking was successfully cancelled.'));
                 } catch (\Throwable $e) {
                     Log::error('Failed to send cancellation email for booking '.$cancelled->id.': '.$e->getMessage());
                 }
