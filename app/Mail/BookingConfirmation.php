@@ -2,13 +2,15 @@
 
 namespace App\Mail;
 
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Booking;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-class BookingConfirmation extends Mailable
+class BookingConfirmation extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
