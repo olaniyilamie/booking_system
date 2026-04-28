@@ -107,7 +107,7 @@ class BookingService
             $to = $user?->email ?? $booking->email;
             if (!empty($to)) {
                 try {
-                    Mail::to($to)->send(new BookingConfirmation($booking));
+                    Mail::to($to)->queue(new BookingConfirmation($booking));
                 } catch (\Throwable $e) {
                     Log::error("Failed to send booking confirmation email for booking {$booking->id} to {$to}: {$e->getMessage()}");
                 }
@@ -313,7 +313,7 @@ class BookingService
         $to = $booking->email ?? $booking->user?->email;
         if (!empty($to)) {
             try {
-                Mail::to($to)->send(new BookingConfirmation($booking));
+                Mail::to($to)->queue(new BookingConfirmation($booking));
             } catch (\Throwable $e) {
                 Log::error("Failed to send booking paid confirmation for booking {$booking->id}: {$e->getMessage()}");
             }
