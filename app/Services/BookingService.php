@@ -76,21 +76,6 @@ class BookingService
                 }
             }
 
-            // prevent same user from double-booking the same space at the sametime when user is known
-            if ($user) {
-                $userHas = (clone $overlapQuery)->where('user_id', $user->id)->exists();
-                if ($userHas) {
-                    throw new \Exception('You already have a booking for this space in the selected time range');
-                }
-            } elseif (!empty($data['email'])) {
-                // prevent duplicate guest bookings by the same email for overlapping slot
-                $email = $data['email'];
-                $emailHas = (clone $overlapQuery)->where('email', $email)->exists();
-                if ($emailHas) {
-                    throw new \Exception('A booking with this email already exists for the selected time range');
-                }
-            }
-
             $booking = Booking::create([
                 'user_id' => $user?->id,
                 'email' => $data['email'] ?? null,
