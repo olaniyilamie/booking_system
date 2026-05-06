@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
 
 class BookingService
@@ -52,6 +53,8 @@ class BookingService
                 if (empty($data['seat_number'])) {
                     throw new \Exception('Seat number is required for seat based spaces');
                 }
+                // Lock matching rows to reduce races with concurrent bookings
+                $occupiedCount = (clone $overlapQuery)->lockForUpdate()->count();
 
                 // If total overlapping (non-cancelled) bookings already occupy all seats, reject
                 $occupiedCount = (clone $overlapQuery)->count();
@@ -63,6 +66,8 @@ class BookingService
                 if ($seat < 1 || $seat > (int) $space->capacity) {
                     throw new \Exception('Invalid seat number for selected space');
                 }
+                // Lock matching rows to reduce races with concurrent bookings
+                $seatTaken = (clone $overlapQuery)->where('seat_number', $seat)->lockForUpdate()->exists();
 
                 // Ensure the specific seat isn't already taken
                 $seatTaken = (clone $overlapQuery)->where('seat_number', $seat)->exists();
@@ -76,17 +81,28 @@ class BookingService
                 }
             }
 
-            $booking = Booking::create([
-                'user_id' => $user?->id,
-                'email' => $data['email'] ?? null,
-                'space_id' => $data['space_id'],
-                'seat_number' => $isSeatBased ? $data['seat_number'] : null,
-                'start_time' => $start,
-                'end_time' => $end,
-                'status' => $data['status'] ?? 'pending',
-                'hold_expires_at' => now()->addMinutes(15),
-                'paid_at' => null,
-            ]);
+            try {
+
+                $booking = Booking::create([
+                    'user_id' => $user?->id,
+                    'email' => $data['email'] ?? null,
+                    'space_id' => $data['space_id'],
+                    'seat_number' => $isSeatBased ? $data['seat_number'] : null,
+                    'start_time' => $start,
+                    'end_time' => $end,'status' => $data['status'] ?? 'pending',
+                    'hold_expires_at' => now()->addMinutes(15),
+                    'paid_at' => null,
+                ]);
+            } catch (QueryException $e) {
+                // Handle duplicate key race where another process inserted the same seat/start
+                if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), 'duplicate')) {
+                    throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
+                        'status' => 'error',
+                        'message' => 'Selected seat was just booked by another user. Please try another seat or time.'
+                    ], 422));
+                }
+                throw $e;
+            }
 
             // send confirmation email to the booking email (registered or guest)
             $to = $user?->email ?? $booking->email;
@@ -105,15 +121,18 @@ class BookingService
     public function update(Booking $booking, array $data): Booking
     {
         return DB::transaction(function () use ($booking, $data) {
+
+            if ($booking->status == 'cancelled') {
+                throw new \Exception('Cannot update a cancelled booking');
+            }
+
             if (isset($data['start_time']) || isset($data['end_time'])) {
                 $start = $data['start_time'] ?? $booking->start_time->toDateTimeString();
                 $end = $data['end_time'] ?? $booking->end_time->toDateTimeString();
 
                 $space = $booking->space()->first();
 
-                if ($booking->status == 'cancelled') {
-                    throw new \Exception('Cannot update a cancelled booking');
-                }
+                
 
                 // If booking is already paid, ensure updated duration does not exceed the originally paid duration.
                 if ($booking->paid_at) {
@@ -180,6 +199,8 @@ class BookingService
                         throw new \Exception('Time slot not available for selected space');
                     }
                 }
+                    
+                $userHas = (clone $overlapQuery)->where('user_id', $booking->user_id)->lockForUpdate()->exists();
 
                 // prevent same user double-booking when updating (if user known)
                 if ($booking->user_id) {
@@ -191,14 +212,12 @@ class BookingService
                     // prevent duplicate guest bookings by email when updating
                     $email = $data['email'] ?? $booking->email;
                     if (!empty($email)) {
-                        $emailHas = (clone $overlapQuery)->where('email', $email)->exists();
+                        $emailHas = (clone $overlapQuery)->where('email', $email)->lockForUpdate()->exists();
                         if ($emailHas) {
                             throw new \Exception('A booking with this email already exists for the selected time range');
                         }
                     }
                 }
-
-                
             }
 
             $booking->fill($data);
